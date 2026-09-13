@@ -1,0 +1,28 @@
+# .NET build output
+bin/
+obj/
+**/bin/
+**/obj/
+
+# Local .NET CLI state
+.dotnet-cli/
+
+# Published binaries
+发布/
+发布修复版/
+
+# IDE and user-specific files
+.vs/
+.idea/
+.vscode/
+*.user
+*.suo
+
+# Debug and temporary files
+*.pdb
+*.tmp
+*.log
+
+# OS metadata
+Thumbs.db
+.DS_Store

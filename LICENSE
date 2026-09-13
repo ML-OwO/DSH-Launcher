@@ -1,0 +1,61 @@
+DSH Launcher 授权与素材声明
+============================
+
+一、程序源码：MIT License
+-------------------------
+
+Copyright (c) 2026 DSH Launcher contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+上述 MIT License 适用于本仓库中的程序源码、项目配置、构建脚本和测试代码，
+但不适用于下述“鲸鱼娘”美术素材及其他第三方内容。
+
+二、“鲸鱼娘”美术素材
+--------------------
+
+角色原型：上善无形「溟月」
+DeepSeek 女仆装二创：ZipZipPipe
+
+本项目使用的“鲸鱼娘”相关图标及图片素材采用 Creative Commons
+署名—非商业性使用—相同方式共享 4.0 国际许可协议（CC BY-NC-SA 4.0）授权。
+
+许可协议说明：
+https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh-hans
+
+完整法律文本：
+https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode
+
+使用这些美术素材时必须：
+
+1. 保留以上角色原型、二创作者及许可协议署名，并提供许可协议链接；
+2. 如对素材进行了修改，应合理说明修改情况；
+3. 不得将素材用于商业目的；
+4. 若再混合、转换或基于素材进行创作，必须使用 CC BY-NC-SA 4.0
+   或该协议允许的兼容协议发布衍生素材；
+5. 不得附加法律条款或技术措施，限制他人行使协议已经允许的权利。
+
+本许可仅适用于“鲸鱼娘”相关美术素材，不自动适用于 MIT 授权的程序源码、
+DeepSeek 或其他第三方软件、商标和素材。
+
+三、第三方名称与商标
+--------------------
+
+DeepSeek、DeepSeek Harness（DSH）及相关名称、标识和商标归各自权利人所有。
+本项目是非官方第三方工具，不代表 DeepSeek 官方，也未获得其官方背书。

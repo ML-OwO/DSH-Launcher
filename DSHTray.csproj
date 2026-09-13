@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows10.0.18362.0</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <AssemblyName>DSH Launcher</AssemblyName>
+    <RootNamespace>DSHLauncher</RootNamespace>
+    <ApplicationIcon>icon\deepseek chan_256x256.ico</ApplicationIcon>
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <DebugSymbols>false</DebugSymbols>
+    <DebugType>none</DebugType>
+    <Platforms>AnyCPU</Platforms>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.WinUI.Notifications" Version="7.1.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="DSHLauncherTests\**\*.cs" />
+    <EmbeddedResource Remove="DSHLauncherTests\**\*" />
+    <None Remove="DSHLauncherTests\**\*" />
+  </ItemGroup>
+</Project>
