@@ -6,7 +6,7 @@
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <AssemblyName>DSH Launcher</AssemblyName>
     <RootNamespace>DSHLauncher</RootNamespace>
-    <ApplicationIcon>icon\deepseek chan_256x256.ico</ApplicationIcon>
+    <ApplicationIcon>../../icon/deepseek chan_256x256.ico</ApplicationIcon>
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
