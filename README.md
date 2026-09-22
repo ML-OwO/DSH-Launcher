@@ -8,8 +8,14 @@
 - 在托盘中启动、关闭服务、查看运行状态和打开配置目录。
 - 更新前停止服务，在终端显示更新日志，成功后关闭更新窗口并重新启动服务。
 - 系统通知提示版本、服务状态和更新结果。
+- Windows 版支持 DeepSeek 账户余额查询，以及密钥设置、更换和清除。
 
 ## 支持的平台
+
+Windows 当前版本：**v1.1**。
+
+- **v1.1（Windows）**：新增余额查询与密钥管理，优化菜单分组、间距、字体和状态颜色。
+- **v1.0**：初始版本，支持服务启停、版本检查与更新。
 
 | 版本 | 适用系统 |
 | --- | --- |
@@ -24,7 +30,13 @@ Linux 桌面还需 GTK3、libappindicator3、notify-send、xdg-open 和 x-termin
 
 ## 使用
 
-Windows：运行 `DSH Launcher.exe`，单击托盘图标管理服务。
+Windows：从 [Releases](https://github.com/ML-OwO/DSH-Launcher/releases) 下载 `DSH Launcher v1.1.exe`，运行后左键或右键单击托盘图标管理服务。
+
+Windows 界面优先使用系统已安装的思源黑体 Medium，状态行使用 Bold；未安装对应字体时回退到可用字体。
+
+余额未配置时显示“未配置”。在余额子菜单中选择“设置／更换密钥”，保存后即可查询；也可手动刷新或清除密钥。打开菜单时，超过一分钟的缓存会自动刷新。
+
+密钥保存于本机当前 Windows 用户的凭据管理器，保存后不回显，不生成额外配置文件。替换 EXE 无需重新配置，换电脑需重新输入；这份密钥仅用于 Launcher 查询余额，不修改 DSH 配置。
 
 Linux：为 `DSH-Launcher` 添加执行权限后运行，或在文件管理器中双击：
 
@@ -55,7 +67,7 @@ tests/
   DSHLauncher.Windows.Tests/  # Windows 回归测试
 icon/                        # 共用图标
 scripts/                     # 原始 DSH 批处理脚本
-publish/                     # 本地构建产物，不提交
+releases/                    # 本地构建产物，不提交
 ```
 
 ## 构建与测试
@@ -67,7 +79,7 @@ publish/                     # 本地构建产物，不提交
 ./build-linux.ps1
 ```
 
-生成文件分别位于 `publish/win-x64` 和 `publish/linux-x64`，各自附带 `SHA256SUMS.txt`。Windows 版请在 Windows 上构建和测试。
+生成文件分别位于 `releases/win-x64` 和 `releases/linux-x64`。Windows 产物为 `DSH Launcher v1.1.exe` 和 `SHA256SUMS-win-x64-v1.1.txt`，文件名随项目版本号更新；Linux 构建附带 `SHA256SUMS.txt`。Windows 版请在 Windows 上构建和测试。
 
 ```powershell
 dotnet run --project tests/DSHLauncher.Core.Tests -c Release
@@ -77,7 +89,7 @@ dotnet run --project tests/DSHLauncher.Windows.Tests/Regression.csproj -c Releas
 Linux 上也可直接构建：
 
 ```sh
-dotnet publish src/DSHLauncher.Linux -c Release -r linux-x64 --self-contained true -p:DebugType=None -p:DebugSymbols=false -o publish/linux-x64
+dotnet publish src/DSHLauncher.Linux -c Release -r linux-x64 --self-contained true -p:DebugType=None -p:DebugSymbols=false -o releases/linux-x64
 ```
 
 ## 许可

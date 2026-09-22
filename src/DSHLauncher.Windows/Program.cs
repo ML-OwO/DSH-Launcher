@@ -20,6 +20,15 @@ namespace DSHLauncher;
 
 internal static class Program
 {
+    internal static string DisplayName
+    {
+        get
+        {
+            Version version = typeof(Program).Assembly.GetName().Version!;
+            return $"DSH Launcher v{version.Major}.{version.Minor}";
+        }
+    }
+
     [STAThread]
     private static void Main()
     {
@@ -31,6 +40,7 @@ internal static class Program
         }
 
         ApplicationConfiguration.Initialize();
+        Application.SetDefaultFont(LauncherAppearance.Medium);
         Application.Run(new TrayContext());
     }
 }
@@ -48,6 +58,7 @@ internal sealed class TrayContext : ApplicationContext
     private readonly ToolStripMenuItem updateItem;
     private readonly ToolStripMenuItem startItem;
     private readonly ToolStripMenuItem stopItem;
+    private readonly BalanceMenu balanceMenu;
     private readonly Icon trayIcon;
     private readonly string configDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".dsh");
     private readonly Queue<string> recentOutput = new();
@@ -72,14 +83,13 @@ internal sealed class TrayContext : ApplicationContext
         statusItem = new StatusMenuItem("DSH 服务：未运行")
         {
             Enabled = false,
-            Font = new Font("Segoe UI", 10F, FontStyle.Bold),
+            Font = LauncherAppearance.StatusBold,
             ForeColor = Color.FromArgb(45, 45, 45),
             DotColor = Color.FromArgb(135, 135, 135),
-            Padding = new Padding(12, 6, 12, 6),
-            Margin = new Padding(2, 5, 2, 1),
             AutoSize = true
         };
         updateItem = CreateMenuItem("正在检查版本…", async (_, _) => await UpdateDshAsync());
+        updateItem.ForeColor = Color.FromArgb(25, 135, 84);
         updateItem.Enabled = false;
         updateItem.Visible = false;
         startItem = CreateMenuItem("启动 DSH 服务", async (_, _) => await StartDshAsync());
@@ -88,7 +98,7 @@ internal sealed class TrayContext : ApplicationContext
         menu = new ContextMenuStrip
         {
             ShowImageMargin = false,
-            Font = new Font("Microsoft YaHei UI", 10F),
+            Font = LauncherAppearance.Medium,
             BackColor = Color.FromArgb(248, 248, 248),
             ForeColor = Color.FromArgb(28, 28, 28),
             Padding = new Padding(6),
@@ -97,8 +107,23 @@ internal sealed class TrayContext : ApplicationContext
             Renderer = new LauncherRenderer()
         };
         menu.Items.Add(statusItem);
-        menu.Items.Add(CreateSeparator());
         menu.Items.Add(updateItem);
+        menu.Items.Add(CreateSeparator());
+        balanceMenu = new BalanceMenu();
+        menu.Items.Add(balanceMenu.Item);
+        var balanceDropDown = (ToolStripDropDownMenu)balanceMenu.Item.DropDown;
+        balanceDropDown.ShowImageMargin = false;
+        balanceDropDown.Font = LauncherAppearance.Medium;
+        balanceDropDown.BackColor = menu.BackColor;
+        balanceDropDown.ForeColor = menu.ForeColor;
+        balanceDropDown.Padding = new Padding(6);
+        balanceDropDown.Renderer = menu.Renderer;
+        balanceDropDown.Opened += (_, _) =>
+        {
+            int rounded = 2;
+            _ = NativeMethods.DwmSetWindowAttribute(balanceDropDown.Handle,
+                NativeMethods.DwmwaWindowCornerPreference, ref rounded, sizeof(int));
+        };
         menu.Items.Add(CreateMenuItem("打开 DSH 配置目录", (_, _) => OpenConfigDirectory()));
         menu.Items.Add(CreateSeparator());
         menu.Items.Add(startItem);
@@ -108,6 +133,7 @@ internal sealed class TrayContext : ApplicationContext
         _ = menu.Handle;
         menu.Opened += (_, _) =>
         {
+            _ = balanceMenu.RefreshAsync();
             PrepareMenuWindow();
             menu.BeginInvoke((Action)(() =>
             {
@@ -145,18 +171,14 @@ internal sealed class TrayContext : ApplicationContext
         if (initialize)
         {
             monitor.Start();
+            menu.BeginInvoke((Action)(async () => await balanceMenu.RefreshAsync()));
             menu.BeginInvoke((Action)(async () => await InitializeAsync()));
         }
     }
 
-    private static ToolStripMenuItem CreateMenuItem(string text, EventHandler handler) => new(text, null, handler)
-    {
-        Padding = new Padding(12, 6, 12, 6),
-        Margin = new Padding(2, 1, 2, 1),
-        AutoSize = true
-    };
+    private static ToolStripMenuItem CreateMenuItem(string text, EventHandler handler) => new LauncherMenuItem(text, handler);
 
-    private static ToolStripSeparator CreateSeparator() => new() { Margin = new Padding(3, 5, 3, 5) };
+    private static ToolStripSeparator CreateSeparator() => new() { Margin = new Padding(3, 3, 3, 3) };
 
     private void PrepareMenuWindow()
     {
@@ -696,7 +718,7 @@ internal sealed class TrayContext : ApplicationContext
         statusItem.Text = status;
         statusItem.DotColor = color;
         statusItem.Invalidate();
-        tray.Text = status;
+        tray.Text = $"{Program.DisplayName}\n{status}";
 
         startItem.Enabled = serviceState == ServiceState.Stopped && !HasLiveTrackedProcess();
         stopItem.Enabled = serviceState is ServiceState.Starting or ServiceState.Running;
@@ -765,6 +787,7 @@ internal sealed class TrayContext : ApplicationContext
     protected override void ExitThreadCore()
     {
         shuttingDown = true;
+        balanceMenu.Dispose();
         monitor.Stop();
         monitor.Dispose();
         suppressExitNotifications = true;
@@ -794,7 +817,7 @@ internal sealed class TrayContext : ApplicationContext
         }
     }
 
-    private sealed class StatusMenuItem : ToolStripMenuItem
+    private sealed class StatusMenuItem : LauncherMenuItem
     {
         public StatusMenuItem(string text) : base(text)
         {
@@ -805,7 +828,7 @@ internal sealed class TrayContext : ApplicationContext
         public override Size GetPreferredSize(Size constrainingSize)
         {
             Size size = base.GetPreferredSize(constrainingSize);
-            return new Size(size.Width + 18, size.Height);
+            return new Size(size.Width + (int)Math.Round(24 * (Owner?.DeviceDpi ?? 96) / 96F), size.Height);
         }
     }
 
@@ -820,7 +843,7 @@ internal sealed class TrayContext : ApplicationContext
         {
             if (!e.Item.Selected || !e.Item.Enabled) return;
 
-            RectangleF bounds = new(3, 1, Math.Max(1, e.Item.Width - 6), Math.Max(1, e.Item.Height - 2));
+            RectangleF bounds = new(3, 0, Math.Max(1, e.Item.Width - 6), Math.Max(1, e.Item.Height));
             using GraphicsPath path = CreateRoundedPath(bounds, 8);
             using var brush = new SolidBrush(Color.FromArgb(232, 238, 245));
             SmoothingMode oldMode = e.Graphics.SmoothingMode;
@@ -838,31 +861,61 @@ internal sealed class TrayContext : ApplicationContext
 
         protected override void OnRenderItemText(ToolStripItemTextRenderEventArgs e)
         {
-            if (e.Item is not StatusMenuItem statusItem)
+            float scale = e.Graphics.DpiY / 96F;
+            int textLeft = e.TextRectangle.X + (int)Math.Round(8 * scale);
+            Color color = e.Item.Enabled ? e.Item.ForeColor : SystemColors.GrayText;
+            if (e.Item is StatusMenuItem statusItem)
             {
-                base.OnRenderItemText(e);
-                return;
+                float dotDiameter = 12 * scale;
+                RectangleF dotBounds = new(textLeft + scale, (e.Item.Height - dotDiameter) / 2F,
+                    dotDiameter, dotDiameter);
+                SmoothingMode oldMode = e.Graphics.SmoothingMode;
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                using (var brush = new SolidBrush(statusItem.DotColor))
+                    e.Graphics.FillEllipse(brush, dotBounds);
+                e.Graphics.SmoothingMode = oldMode;
+                textLeft += (int)Math.Round(24 * scale);
+                color = Color.FromArgb(45, 45, 45);
             }
 
-            const int dotDiameter = 10;
-            Rectangle dotBounds = new(
-                e.TextRectangle.X + 1,
-                e.TextRectangle.Y + (e.TextRectangle.Height - dotDiameter) / 2,
-                dotDiameter,
-                dotDiameter);
+            int rightInset = (int)Math.Round(
+                (e.Item is ToolStripMenuItem item && item.HasDropDownItems ? 28 : 12) * scale);
             Rectangle textBounds = new(
-                e.TextRectangle.X + 18,
-                e.TextRectangle.Y,
-                Math.Max(1, e.TextRectangle.Width),
-                e.TextRectangle.Height);
+                textLeft,
+                0,
+                Math.Max(1, e.Item.Width - textLeft - rightInset),
+                e.Item.Height);
             TextFormatFlags flags = TextFormatFlags.Left | TextFormatFlags.VerticalCenter |
-                                    TextFormatFlags.SingleLine | TextFormatFlags.NoPrefix;
-            SmoothingMode oldMode = e.Graphics.SmoothingMode;
-            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-            using (var brush = new SolidBrush(statusItem.DotColor))
-                e.Graphics.FillEllipse(brush, dotBounds);
-            e.Graphics.SmoothingMode = oldMode;
-            TextRenderer.DrawText(e.Graphics, e.Text, e.TextFont, textBounds, Color.FromArgb(45, 45, 45), flags);
+                                    TextFormatFlags.SingleLine | TextFormatFlags.NoPrefix |
+                                    TextFormatFlags.NoPadding | TextFormatFlags.EndEllipsis;
+            Font font = e.Item.Font;
+            string text = e.Text ?? string.Empty;
+            if (e.Item is StatusMenuItem stateItem)
+            {
+                int separator = text.IndexOf('：');
+                if (separator >= 0)
+                {
+                    string prefix = text.Substring(0, separator + 1);
+                    int prefixWidth = Math.Min(textBounds.Width, TextRenderer.MeasureText(e.Graphics,
+                        prefix, font, Size.Empty, TextFormatFlags.SingleLine | TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix).Width);
+                    Rectangle prefixBounds = new(textBounds.X, textBounds.Y, prefixWidth, textBounds.Height);
+                    TextRenderer.DrawText(e.Graphics, prefix, font, prefixBounds, color, flags);
+                    Rectangle valueBounds = new(textBounds.X + prefixWidth, textBounds.Y,
+                        Math.Max(0, textBounds.Width - prefixWidth), textBounds.Height);
+                    TextRenderer.DrawText(e.Graphics, text.Substring(separator + 1), font, valueBounds, stateItem.DotColor, flags);
+                    return;
+                }
+                color = stateItem.DotColor;
+            }
+            TextRenderer.DrawText(e.Graphics, text, font, textBounds, color, flags);
+        }
+
+        protected override void OnRenderArrow(ToolStripArrowRenderEventArgs e)
+        {
+            Rectangle bounds = e.ArrowRectangle;
+            if (e.Item is not null) bounds.Y = (e.Item.Height - bounds.Height) / 2;
+            e.ArrowRectangle = bounds;
+            base.OnRenderArrow(e);
         }
 
         protected override void OnRenderToolStripBorder(ToolStripRenderEventArgs e)
